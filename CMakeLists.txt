@@ -7,12 +7,12 @@ cmake_minimum_required(VERSION 3.14)
 project(Codec63
 	VERSION 3.0
 	DESCRIPTION "CMake configuration file for Codec63 in C"
-        LANGUAGES C)
+	LANGUAGES CUDA)
 
 # Use the C standard from 2011. No effect on Windows (Visual Studio ignores
 # the standards anyway).
-set(CMAKE_C_STANDARD 11)
-set(CMAKE_CXX_EXTENSIONS ON) # definitely use GNU extensions (actually default)
+set(CMAKE_CUDA_STANDARD 11)
+set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # Overwrite default -O3 flag for Release mode
 set(CMAKE_C_FLAGS_RELEASE "-O1 -fno-tree-vectorize")
@@ -24,6 +24,18 @@ set(CMAKE_C_FLAGS_DEBUG "-g -O1 -fno-tree-vectorize")
 set(CMAKE_BUILD_TYPE Debug)
 # set(CMAKE_BUILD_TYPE Release)
 
+if(EXISTS "/etc/nv_tegra_release")
+  # The CC list for Tegras and Jetson will require manual updates
+  set(CMAKE_CUDA_ARCHITECTURES "53;62;72;87"
+      CACHE
+      STRING "Which CUDA CCs to support? Explicit numbers, defaults fail for Tegras")
+else()
+  # The CC list for discrete GPUs will require CMake updates
+  set(CMAKE_CUDA_ARCHITECTURES "all-major"
+      CACHE
+      STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
+endif()
+
 #
 # If this is a Tegra or something similar, set our processor subrevision.
 # On Mac, CMake adds arch flags by itself.
@@ -33,23 +45,23 @@ if(EXISTS "/etc/nv_tegra_release")
 endif()
 
 add_library(c63
-            STATIC dsp.c dsp.h
-	           tables.c tables.h
-	           io.c io.h
-	           common.c common.h
-	           me.c me.h)
+            STATIC quantdct.cu quantdct.h
+	           tables.cu tables.h
+	           io.cu io.h
+	           common.cu common.h
+	           me.cu me.h)
 
 add_executable(c63enc
-               c63enc.c c63.h
-	       c63_write.c c63_write.h)
+               c63enc.cu c63.h
+	       c63_write.cu c63_write.h)
 target_link_libraries(c63enc c63 m)
 
 add_executable(c63dec
-               c63dec.c c63.h)
+               c63dec.cu c63.h)
 target_link_libraries(c63dec c63 m)
 
 add_executable(c63pred
-               c63dec.c c63.h)
+               c63dec.cu c63.h)
 target_link_libraries(c63pred c63 m)
 target_compile_options(c63pred PUBLIC -DC63_PRED)
 
