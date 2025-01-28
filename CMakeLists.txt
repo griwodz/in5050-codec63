@@ -42,14 +42,14 @@ add_library(c63
 add_executable(c63enc
                c63enc.c c63.h
 	       c63_write.c c63_write.h)
-target_link_libraries(c63enc c63)
+target_link_libraries(c63enc c63 m)
 
 add_executable(c63dec
                c63dec.c c63.h)
-target_link_libraries(c63dec c63)
+target_link_libraries(c63dec c63 m)
 
 add_executable(c63pred
                c63dec.c c63.h)
-target_link_libraries(c63pred c63)
+target_link_libraries(c63pred c63 m)
 target_compile_options(c63pred PUBLIC -DC63_PRED)
 
