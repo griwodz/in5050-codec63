@@ -15,51 +15,48 @@
 
 #define ISQRT2 0.70710678118654f
 
-static void transpose_block(float *in_data, float *out_data)
+static void dct_2d( const float* in, float* out )
 {
-  int i, j;
-
-  for (i = 0; i < 8; ++i)
-  {
-    for (j = 0; j < 8; ++j)
+    //Loop through all elements of the block
+    for(int v = 0; v < 8; v++)
     {
-      out_data[i*8+j] = in_data[j*8+i];
+        for(int u = 0; u < 8; u++)
+        {
+            /* Compute the DCT */
+            float dct = 0;
+            for(int y = 0; y < 8; y++)
+            {
+                for(int x = 0; x < 8; x++)
+                {
+                    dct += in[y*8+x] * dctlookup[x][u] * dctlookup[y][v];
+                }
+            }
+
+            out[v*8+u] = dct;
+        }
     }
-  }
 }
 
-static void dct_1d(float *in_data, float *out_data)
+static void idct_2d( const float* in, float* out )
 {
-  int i, j;
-
-  for (i = 0; i < 8; ++i)
-  {
-    float dct = 0;
-
-    for (j = 0; j < 8; ++j)
+    //Loop through all elements of the block
+    for(int v = 0; v < 8; v++)
     {
-      dct += in_data[j] * dctlookup[j][i];
+        for(int u = 0; u < 8; u++)
+        {
+            /* Compute the iDCT */
+            float dct = 0;
+            for(int y = 0; y < 8; y++)
+            {
+                for(int x = 0; x < 8; x++)
+                {
+                    dct += in[y*8+x] * dctlookup[u][x] * dctlookup[v][y];
+                }
+            }
+
+            out[v*8+u] = dct;
+        }
     }
-
-    out_data[i] = dct;
-  }
-}
-
-static void idct_1d(float *in_data, float *out_data)
-{
-  int i, j;
-
-  for (i = 0; i < 8; ++i)
-  {
-    float idct = 0;
-
-    for (j = 0; j < 8; ++j)
-    {
-      idct += in_data[j] * dctlookup[i][j];
-    }
-
-    out_data[i] = idct;
-  }
 }
 
 static void scale_block(float *in_data, float *out_data)
@@ -118,20 +115,13 @@ static void dct_quant_block_8x8(int16_t *in_data, int16_t *out_data,
   float mb[8*8] __attribute((aligned(16)));
   float mb2[8*8] __attribute((aligned(16)));
 
-  int i, v;
+  for( int i = 0; i < 64; i++ ) { mb[i] = in_data[i]; }
 
-  for (i = 0; i < 64; ++i) { mb2[i] = in_data[i]; }
-
-  /* Two 1D DCT operations with transpose */
-  for (v = 0; v < 8; ++v) { dct_1d(mb2+v*8, mb+v*8); }
-  transpose_block(mb, mb2);
-  for (v = 0; v < 8; ++v) { dct_1d(mb2+v*8, mb+v*8); }
-  transpose_block(mb, mb2);
-
+  dct_2d(mb, mb2);
   scale_block(mb2, mb);
   quantize_block(mb, mb2, quant_tbl);
 
-  for (i = 0; i < 64; ++i) { out_data[i] = mb2[i]; }
+  for( int i = 0; i < 64; i++ ) { out_data[i] = mb2[i]; }
 }
 
 static void dequant_idct_block_8x8(int16_t *in_data, int16_t *out_data,
@@ -140,20 +130,13 @@ static void dequant_idct_block_8x8(int16_t *in_data, int16_t *out_data,
   float mb[8*8] __attribute((aligned(16)));
   float mb2[8*8] __attribute((aligned(16)));
 
-  int i, v;
-
-  for (i = 0; i < 64; ++i) { mb[i] = in_data[i]; }
+  for( int i = 0; i < 64; i++ ) { mb[i] = in_data[i]; }
 
   dequantize_block(mb, mb2, quant_tbl);
   scale_block(mb2, mb);
+  idct_2d(mb, mb2);
 
-  /* Two 1D inverse DCT operations with transpose */
-  for (v = 0; v < 8; ++v) { idct_1d(mb+v*8, mb2+v*8); }
-  transpose_block(mb2, mb);
-  for (v = 0; v < 8; ++v) { idct_1d(mb+v*8, mb2+v*8); }
-  transpose_block(mb2, mb);
-
-  for (i = 0; i < 64; ++i) { out_data[i] = mb[i]; }
+  for( int i = 0; i < 64; i++ ) { out_data[i] = mb2[i]; }
 }
 
 static void dequantize_idct_row(int16_t *in_data, uint8_t *prediction, int w, int h,
