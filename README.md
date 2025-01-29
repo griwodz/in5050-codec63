@@ -23,10 +23,12 @@ To decode the c63 file:
 ./c63dec foremanout.c63 output.yuv
 ```
 
-Tip! Use mplayer to playback raw YUV file:
+Tip! Use mplayer or ffplay to playback raw YUV file:
 ```
 mplayer -demuxer rawvideo -rawvideo w=352:h=288 output.yuv
+ffplay -f rawvideo -pixel_format yuv420p -video_size 352x288 -i output.yuv
 ```
+
 
 ### Description ###
 This project is used in IN5050 (Programming Heterogeneous Multi-core Architectures) at the Department of Informatics, University of Oslo, Norway. For more information, see the [course page](https://www.uio.no/studier/emner/matnat/ifi/IN5050/).
