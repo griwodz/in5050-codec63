@@ -19,6 +19,22 @@ set(CMAKE_C_FLAGS_RELEASE "-O1 -fno-tree-vectorize")
 # Make sure Debug mode flags are similar to Release mode flags
 set(CMAKE_C_FLAGS_DEBUG "-g -O1 -fno-tree-vectorize")
 
+# CMake configures Makefiles for discrete GPUs, but it doesn't do it
+# for integrated GPUs like the Tegra. Pick the right compute capabilities
+# explicitly. A bit hackish because a Tegra might have a discrete GPU.
+# But it cannot use both at the same time.
+if(EXISTS "/etc/nv_tegra_release")
+  # The CC list for Tegras and Jetson will require manual updates
+  set(CMAKE_CUDA_ARCHITECTURES "53;62;72;87"
+      CACHE
+      STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
+else()
+  # The CC list for discrete GPUs will require CMake updates
+  set(CMAKE_CUDA_ARCHITECTURES "all-major"
+      CACHE
+      STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
+endif()
+
 # Debug compiles with -g or equivalent for debugging.
 # Change to Release for good speed.
 set(CMAKE_BUILD_TYPE Debug)
