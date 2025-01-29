@@ -36,13 +36,10 @@ else()
       STRING "Which CUDA CCs to support: native, all, all-major or an explicit list delimited by semicolons")
 endif()
 
-#
-# If this is a Tegra or something similar, set our processor subrevision.
-# On Mac, CMake adds arch flags by itself.
-#
-if(EXISTS "/etc/nv_tegra_release")
-    add_compile_options(-march=armv8.2-a)
-endif()
+# This march option works with GCC but apparently not with the CUDA compiler on Tegra
+# if(EXISTS "/etc/nv_tegra_release")
+#     add_compile_options(-march=armv8.2-a)
+# endif()
 
 add_library(c63
             STATIC quantdct.cu quantdct.h
