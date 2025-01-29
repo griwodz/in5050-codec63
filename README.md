@@ -23,9 +23,10 @@ To decode the c63 file:
 ./c63dec foremanout.c63 output.yuv
 ```
 
-Tip! Use mplayer to playback raw YUV file:
+Tip! Use mplayer or ffplay to playback raw YUV file:
 ```
 mplayer -demuxer rawvideo -rawvideo w=352:h=288 foreman.yuv
+ffplay -f rawvideo -pixel_format yuv420p -video_size 352x288 -i output.yuv
 ```
 
 ### Description ###
