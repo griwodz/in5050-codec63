@@ -1,5 +1,14 @@
 # Codec63 #
 
+The repository contains code for both native C code that is meant for compilation with GCC,
+and native CUDA code that is meant for compilation with NVCC. Choose the subdirectory 
+c63-in-c for the first and c63-in-cuda for the second.
+
+The code is actually the same at this point (C++ is pretty much a superset of C,
+and CUDA a superset of C++), only the filenames are different for convenience.
+
+After changing either to c63-in-c or to c63-in-cuda, you do the following:
+
 To build:
 ```
 mkdir build
