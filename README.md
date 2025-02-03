@@ -32,10 +32,14 @@ To decode the c63 file:
 ./c63dec foremanout.c63 output.yuv
 ```
 
-Tip! Use mplayer or ffplay to playback raw YUV file:
+To playback the raw YUV file before encoding or after decoding, you can use mplayer or ffplay.
 ```
 mplayer -demuxer rawvideo -rawvideo w=352:h=288 output.yuv
 ffplay -f rawvideo -pixel_format yuv420p -video_size 352x288 -i output.yuv
+```
+When you are remotely logged into a Tegra, you may have to force the use of X11:
+```
+mplayer -vo x11 -demuxer rawvideo -rawvideo w=352:h=288 output.yuv
 ```
 
 
