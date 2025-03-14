@@ -49,7 +49,9 @@ if(CMAKE_C_COMPILER_ID STREQUAL GNU)
     add_compile_options(-march=armv8.2-a)
   endif()
 else()
-  message(FATAL "Not compiling with an gcc")
+  if(EXISTS "/etc/nv_tegra_release")
+    add_compile_options(-Xcompiler -march=armv8.2-a)
+  endif()
 endif()
 
 # This march option works with GCC but apparently not with the CUDA compiler on Tegra
