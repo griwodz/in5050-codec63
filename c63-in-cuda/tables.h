@@ -3,8 +3,8 @@
 
 #include <inttypes.h>
 
-extern uint8_t yquanttbl_def[64] __attribute__((aligned(16)));
-extern uint8_t uvquanttbl_def[64] __attribute__((aligned(16)));
+extern uint8_t yquanttbl_def[64] __attribute__( ( aligned( 16 ) ) );
+extern uint8_t uvquanttbl_def[64] __attribute__( ( aligned( 16 ) ) );
 extern uint16_t DCVLC[2][12];
 extern uint8_t DCVLC_Size[2][12];
 extern uint8_t DCVLC_num_by_length[2][16];
@@ -19,4 +19,4 @@ extern float dctlookup[8][8];
 extern uint16_t MVVLC[8];
 extern uint8_t MVVLC_Size[8];
 
-#endif  /* C63_TABLES_H_ */
+#endif /* C63_TABLES_H_ */
