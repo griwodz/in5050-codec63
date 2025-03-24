@@ -14,9 +14,9 @@ destroy_frame( struct frame *f )
 {
     /* First frame doesn't have a reconstructed frame to destroy */
     if ( !f )
-      {
-          return;
-      }
+    {
+        return;
+    }
 
     free( f->recons->Y );
     free( f->recons->U );

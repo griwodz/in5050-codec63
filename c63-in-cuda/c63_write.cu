@@ -96,9 +96,9 @@ write_DHT_HTS( struct c63_common *cm, uint8_t id, uint8_t *numlength,
     int i, n = 0;
 
     for ( i = 0; i < 16; ++i )
-      {
-          n += numlength[i];
-      }
+    {
+        n += numlength[i];
+    }
 
     put_byte( cm->e_ctx.fp, id );
     put_bytes( cm->e_ctx.fp, numlength, 16 );
@@ -170,17 +170,17 @@ static inline uint8_t
 bit_width( int16_t i )
 {
     if ( __builtin_expect( !i, 0 ) )
-      {
-          return 0;
-      }
+    {
+        return 0;
+    }
 
     int r = 0;
     int v = abs( i );
 
     while ( v >>= 1 )
-      {
-          ++r;
-      }
+    {
+        ++r;
+    }
 
     return r + 1;
 }
@@ -202,48 +202,48 @@ write_block( struct c63_common *cm, int16_t *in_data, uint32_t width,
     put_bits( &cm->e_ctx, mb->use_mv, 1 );
 
     if ( mb->use_mv )
-      {
-          int reuse_prev_mv = 0;
+    {
+        int reuse_prev_mv = 0;
 
-          if ( uoffset &&
-               ( mb - 1 )->use_mv &&
-               ( mb - 1 )->mv_x == mb->mv_x && ( mb - 1 )->mv_y == mb->mv_y )
+        if ( uoffset &&
+             ( mb - 1 )->use_mv &&
+             ( mb - 1 )->mv_x == mb->mv_x && ( mb - 1 )->mv_y == mb->mv_y )
+        {
+            reuse_prev_mv = 1;
+        }
+
+        put_bits( &cm->e_ctx, reuse_prev_mv, 1 );
+
+        if ( !reuse_prev_mv )
+        {
+            uint8_t sz;
+            int16_t val;
+
+            /* Encode MV x-coord */
+            val = mb->mv_x;
+            sz = bit_width( val );
+            if ( val < 0 )
             {
-                reuse_prev_mv = 1;
+                --val;
             }
 
-          put_bits( &cm->e_ctx, reuse_prev_mv, 1 );
+            put_bits( &cm->e_ctx, MVVLC[sz], MVVLC_Size[sz] );
+            put_bits( &cm->e_ctx, val, sz );
+            /* ++frequencies[cc][sz]; */
 
-          if ( !reuse_prev_mv )
+            /* Encode MV y-coord */
+            val = mb->mv_y;
+            sz = bit_width( val );
+            if ( val < 0 )
             {
-                uint8_t sz;
-                int16_t val;
-
-                /* Encode MV x-coord */
-                val = mb->mv_x;
-                sz = bit_width( val );
-                if ( val < 0 )
-                  {
-                      --val;
-                  }
-
-                put_bits( &cm->e_ctx, MVVLC[sz], MVVLC_Size[sz] );
-                put_bits( &cm->e_ctx, val, sz );
-                /* ++frequencies[cc][sz]; */
-
-                /* Encode MV y-coord */
-                val = mb->mv_y;
-                sz = bit_width( val );
-                if ( val < 0 )
-                  {
-                      --val;
-                  }
-
-                put_bits( &cm->e_ctx, MVVLC[sz], MVVLC_Size[sz] );
-                put_bits( &cm->e_ctx, val, sz );
-                /* ++frequencies[cc][sz]; */
+                --val;
             }
-      }
+
+            put_bits( &cm->e_ctx, MVVLC[sz], MVVLC_Size[sz] );
+            put_bits( &cm->e_ctx, val, sz );
+            /* ++frequencies[cc][sz]; */
+        }
+    }
 
     /* Write residuals */
 
@@ -251,38 +251,17 @@ write_block( struct c63_common *cm, int16_t *in_data, uint32_t width,
     int16_t *block = &in_data[uoffset * 8 + voffset * width];
     int32_t num_ac = 0;
 
-#if 0
-    static int blocknum;
-
-    ++blocknum;
-
-    printf( "Dump block %d:\n", blocknum );
-
-    for ( i = 0; i < 8; ++i )
-      {
-          for ( j = 0; j < 8; ++j )
-            {
-                printf( ", %5d", block[i * 8 + j] );
-            }
-          printf( "\n" );
-      }
-
-    printf( "Finished block\n\n" );
-#endif
-
     /* Calculate DC component, and write to stream */
     int16_t dc = block[0] - *prev_DC;
-
     *prev_DC = block[0];
 
     uint8_t size = bit_width( dc );
-
     put_bits( &cm->e_ctx, DCVLC[cc][size], DCVLC_Size[cc][size] );
 
     if ( dc < 0 )
-      {
-          dc = dc - 1;
-      }
+    {
+        dc = dc - 1;
+    }
     put_bits( &cm->e_ctx, dc, size );
 
     /* find the last nonzero entry of the ac-coefficients */
@@ -290,40 +269,38 @@ write_block( struct c63_common *cm, int16_t *in_data, uint32_t width,
 
     /* Put the nonzero ac-coefficients */
     for ( i = 1; i < j; i++ )
-      {
-          int16_t ac = block[i];
-
-          if ( ac == 0 )
+    {
+        int16_t ac = block[i];
+        if ( ac == 0 )
+        {
+            if ( ++num_ac == 16 )
             {
-                if ( ++num_ac == 16 )
-                  {
-                      put_bits( &cm->e_ctx, ACVLC[cc][15][0],
-                                ACVLC_Size[cc][15][0] );
-                      num_ac = 0;
-                  }
-            }
-          else
-            {
-                uint8_t size = bit_width( ac );
-
-                put_bits( &cm->e_ctx, ACVLC[cc][num_ac][size],
-                          ACVLC_Size[cc][num_ac][size] );
-
-                if ( ac < 0 )
-                  {
-                      --ac;
-                  }
-
-                put_bits( &cm->e_ctx, ac, size );
+                put_bits( &cm->e_ctx, ACVLC[cc][15][0],
+                          ACVLC_Size[cc][15][0] );
                 num_ac = 0;
             }
-      }
+        }
+        else
+        {
+            uint8_t size = bit_width( ac );
+            put_bits( &cm->e_ctx, ACVLC[cc][num_ac][size],
+                      ACVLC_Size[cc][num_ac][size] );
+
+            if ( ac < 0 )
+            {
+                --ac;
+            }
+
+            put_bits( &cm->e_ctx, ac, size );
+            num_ac = 0;
+        }
+    }
 
     /* Put end of block marker */
     if ( j < 64 )
-      {
-          put_bits( &cm->e_ctx, ACVLC[cc][0][0], ACVLC_Size[cc][0][0] );
-      }
+    {
+        put_bits( &cm->e_ctx, ACVLC[cc][0][0], ACVLC_Size[cc][0][0] );
+    }
 }
 
 static void
@@ -335,18 +312,18 @@ write_interleaved_data_MCU( struct c63_common *cm, int16_t *dct,
     uint32_t i, j, ii, jj;
 
     for ( j = y * v * 8; j < ( y + 1 ) * v * 8; j += 8 )
-      {
-          jj = he - 8;
-          jj = MIN( j, jj );
+    {
+        jj = he - 8;
+        jj = MIN( j, jj );
 
-          for ( i = x * h * 8; i < ( x + 1 ) * h * 8; i += 8 )
-            {
-                ii = wi - 8;
-                ii = MIN( i, ii );
+        for ( i = x * h * 8; i < ( x + 1 ) * h * 8; i += 8 )
+        {
+            ii = wi - 8;
+            ii = MIN( i, ii );
 
-                write_block( cm, dct, wi, he, ii, jj, prev_DC, cc, channel );
-            }
-      }
+            write_block( cm, dct, wi, he, ii, jj, prev_DC, cc, channel );
+        }
+    }
 }
 
 static void
@@ -362,26 +339,26 @@ write_interleaved_data( struct c63_common *cm )
 
     /* Find the number of MCU's for the intensity */
     uint32_t ublocks =
-        ( uint32_t ) ( ceil( cm->ypw / ( float )( 8.0f * YX ) ) );
+        ( uint32_t ) ( ceil( cm->ypw / ( float ) ( 8.0f * YX ) ) );
     uint32_t vblocks =
-        ( uint32_t ) ( ceil( cm->yph / ( float )( 8.0f * YY ) ) );
+        ( uint32_t ) ( ceil( cm->yph / ( float ) ( 8.0f * YY ) ) );
 
     /* Write the MCU's interleaved */
     for ( v = 0; v < vblocks; ++v )
-      {
-          for ( u = 0; u < ublocks; ++u )
-            {
-                write_interleaved_data_MCU( cm, cm->curframe->residuals->Ydct,
-                                            cm->ypw, cm->yph, YX, YY, u, v,
-                                            &prev_DC[0], yhtbl, 0 );
-                write_interleaved_data_MCU( cm, cm->curframe->residuals->Udct,
-                                            cm->upw, cm->uph, UX, UY, u, v,
-                                            &prev_DC[1], uhtbl, 1 );
-                write_interleaved_data_MCU( cm, cm->curframe->residuals->Vdct,
-                                            cm->vpw, cm->vph, VX, VY, u, v,
-                                            &prev_DC[2], vhtbl, 2 );
-            }
-      }
+    {
+        for ( u = 0; u < ublocks; ++u )
+        {
+            write_interleaved_data_MCU( cm, cm->curframe->residuals->Ydct,
+                                        cm->ypw, cm->yph, YX, YY, u, v,
+                                        &prev_DC[0], yhtbl, 0 );
+            write_interleaved_data_MCU( cm, cm->curframe->residuals->Udct,
+                                        cm->upw, cm->uph, UX, UY, u, v,
+                                        &prev_DC[1], uhtbl, 1 );
+            write_interleaved_data_MCU( cm, cm->curframe->residuals->Vdct,
+                                        cm->vpw, cm->vph, VX, VY, u, v,
+                                        &prev_DC[2], vhtbl, 2 );
+        }
+    }
 
     flush_bits( &cm->e_ctx );
 }

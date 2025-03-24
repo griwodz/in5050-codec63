@@ -55,34 +55,33 @@ read_yuv( FILE *file, struct c63_common *cm )
     len += fread( image->V, 1, ( width * height ) / 4, file );
 
     if ( ferror( file ) )
-      {
-          perror( "ferror" );
-          exit( EXIT_FAILURE );
-      }
+    {
+        perror( "ferror" );
+        exit( EXIT_FAILURE );
+    }
 
     if ( feof( file ) )
-      {
-          free( image->Y );
-          free( image->U );
-          free( image->V );
-          free( image );
+    {
+        free( image->Y );
+        free( image->U );
+        free( image->V );
+        free( image );
 
-          return NULL;
-      }
+        return NULL;
+    }
     else if ( len != width * height * 1.5 )
-      {
-          fprintf( stderr,
-                   "Reached end of file, but incorrect bytes read.\n" );
-          fprintf( stderr, "Wrong input? (height: %d width: %d)\n", height,
-                   width );
+    {
+        fprintf( stderr, "Reached end of file, but incorrect bytes read.\n" );
+        fprintf( stderr, "Wrong input? (height: %d width: %d)\n", height,
+                 width );
 
-          free( image->Y );
-          free( image->U );
-          free( image->V );
-          free( image );
+        free( image->Y );
+        free( image->U );
+        free( image->V );
+        free( image );
 
-          return NULL;
-      }
+        return NULL;
+    }
 
     return image;
 }
@@ -98,25 +97,25 @@ c63_encode_image( struct c63_common *cm, yuv_t *image )
     /* Check if keyframe */
     if ( cm->framenum == 0
          || cm->frames_since_keyframe == cm->keyframe_interval )
-      {
-          cm->curframe->keyframe = 1;
-          cm->frames_since_keyframe = 0;
+    {
+        cm->curframe->keyframe = 1;
+        cm->frames_since_keyframe = 0;
 
-          fprintf( stderr, " (keyframe) " );
-      }
+        fprintf( stderr, " (keyframe) " );
+    }
     else
-      {
-          cm->curframe->keyframe = 0;
-      }
+    {
+        cm->curframe->keyframe = 0;
+    }
 
     if ( !cm->curframe->keyframe )
-      {
-          /* Motion Estimation */
-          c63_motion_estimate( cm );
+    {
+        /* Motion Estimation */
+        c63_motion_estimate( cm );
 
-          /* Motion Compensation */
-          c63_motion_compensate( cm );
-      }
+        /* Motion Compensation */
+        c63_motion_compensate( cm );
+    }
 
     /* DCT and Quantization */
     dct_quantize( image->Y, cm->curframe->predicted->Y, cm->padw[Y_COMPONENT],
@@ -188,13 +187,11 @@ init_c63_enc( int width, int height )
 
     /* Initialize quantization tables */
     for ( i = 0; i < 64; ++i )
-      {
-          cm->quanttbl[Y_COMPONENT][i] = yquanttbl_def[i] / ( cm->qp / 10.0 );
-          cm->quanttbl[U_COMPONENT][i] =
-              uvquanttbl_def[i] / ( cm->qp / 10.0 );
-          cm->quanttbl[V_COMPONENT][i] =
-              uvquanttbl_def[i] / ( cm->qp / 10.0 );
-      }
+    {
+        cm->quanttbl[Y_COMPONENT][i] = yquanttbl_def[i] / ( cm->qp / 10.0 );
+        cm->quanttbl[U_COMPONENT][i] = uvquanttbl_def[i] / ( cm->qp / 10.0 );
+        cm->quanttbl[V_COMPONENT][i] = uvquanttbl_def[i] / ( cm->qp / 10.0 );
+    }
 
     return cm;
 }
@@ -230,109 +227,97 @@ main( int argc, char **argv )
     yuv_t *image;
 
     if ( argc == 1 )
-      {
-          print_help(  );
-      }
+    {
+        print_help(  );
+    }
 
     while ( ( c = getopt( argc, argv, "h:w:o:f:i:" ) ) != -1 )
-      {
-          switch ( c )
-            {
-            case 'h':
-                height = atoi( optarg );
-                break;
-            case 'w':
-                width = atoi( optarg );
-                break;
-            case 'o':
-                output_file = optarg;
-                break;
-            case 'f':
-                limit_numframes = atoi( optarg );
-                break;
-            default:
-                print_help(  );
-                break;
-            }
-      }
+    {
+        switch ( c )
+        {
+        case 'h':
+            height = atoi( optarg );
+            break;
+        case 'w':
+            width = atoi( optarg );
+            break;
+        case 'o':
+            output_file = optarg;
+            break;
+        case 'f':
+            limit_numframes = atoi( optarg );
+            break;
+        default:
+            print_help(  );
+            break;
+        }
+    }
 
     if ( optind >= argc )
-      {
-          fprintf( stderr, "Error getting program options, try --help.\n" );
-          exit( EXIT_FAILURE );
-      }
+    {
+        fprintf( stderr, "Error getting program options, try --help.\n" );
+        exit( EXIT_FAILURE );
+    }
 
     outfile = fopen( output_file, "wb" );
 
     if ( outfile == NULL )
-      {
-          perror( "fopen" );
-          exit( EXIT_FAILURE );
-      }
+    {
+        perror( "fopen" );
+        exit( EXIT_FAILURE );
+    }
 
     struct c63_common *cm = init_c63_enc( width, height );
-
     cm->e_ctx.fp = outfile;
 
     input_file = argv[optind];
 
     if ( limit_numframes )
-      {
-          printf( "Limited to %d frames.\n", limit_numframes );
-      }
+    {
+        printf( "Limited to %d frames.\n", limit_numframes );
+    }
 
     FILE *infile = fopen( input_file, "rb" );
 
     if ( infile == NULL )
-      {
-          perror( "fopen" );
-          exit( EXIT_FAILURE );
-      }
+    {
+        perror( "fopen" );
+        exit( EXIT_FAILURE );
+    }
 
     /* Encode input frames */
     int numframes = 0;
 
     while ( 1 )
-      {
-          image = read_yuv( infile, cm );
+    {
+        image = read_yuv( infile, cm );
 
-          if ( !image )
-            {
-                break;
-            }
+        if ( !image )
+        {
+            break;
+        }
 
-          printf( "Encoding frame %d, ", numframes );
-          c63_encode_image( cm, image );
+        printf( "Encoding frame %d, ", numframes );
+        c63_encode_image( cm, image );
 
-          free( image->Y );
-          free( image->U );
-          free( image->V );
-          free( image );
+        free( image->Y );
+        free( image->U );
+        free( image->V );
+        free( image );
 
-          printf( "Done!\n" );
+        printf( "Done!\n" );
 
-          ++numframes;
+        ++numframes;
 
-          if ( limit_numframes && numframes >= limit_numframes )
-            {
-                break;
-            }
-      }
+        if ( limit_numframes && numframes >= limit_numframes )
+        {
+            break;
+        }
+    }
 
     free_c63_enc( cm );
     fclose( outfile );
     fclose( infile );
-
-    //int i, j;
-    //for (i = 0; i < 2; ++i)
-    //{
-    //  printf("int freq[] = {");
-    //  for (j = 0; j < ARRAY_SIZE(frequencies[i]); ++j)
-    //  {
-    //    printf("%d, ", frequencies[i][j]);
-    //  }
-    //  printf("};\n");
-    //}
 
     return EXIT_SUCCESS;
 }
