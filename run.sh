@@ -5,16 +5,22 @@ set -e
 # USAGE: ./run.sh [--tegra hostname]
 #
 
+SRC_DIR="$(realpath $(dirname $0))"
+
 TEGRA_CMD="c63server"
 TEGRA_ARGS=""
 
-# To use CUDA variant, change this
-SUBDIR="c63-in-c"
+# Set this to use either the c variant or the CUDA variant
+SUBDIR="PLEASE-SET-ME"
+
+if [ ! -d $SRC_DIR/$SUBDIR ]; then
+    echo "Please set SUBDIR variable to c63-in-c or c63-in-cuda in $(realpath $0)"
+    exit 1
+fi
 
 PC_CMD="c63client"
 PC_ARGS="/opt/Media/foreman.yuv -o output -w 352 -h 288"
 
-SRC_DIR="$(realpath $(dirname $0))"
 DATE=$(date -u +%Y%m%d-%H%M%S)
 RSYNC_ARGS="-rt --exclude=logs/ --exclude=.*"
 BUILD_DIR="in5050-codec63-build"
@@ -99,12 +105,12 @@ rsync ${RSYNC_ARGS} ${SRC_DIR}/ $PC:${BUILD_DIR}/
 echo
 echo "### Compiling on Tegra ###"
 echo
-ssh -t $TEGRA "mkdir -p ${BUILD_DIR}/$SUBDIR/build && cd $BUILD_DIR/$SUBDIR/build && cmake .. && make ${CLEAN} $TEGRA_CMD" || exit $?
+ssh -t $TEGRA "export PATH=/usr/local/cuda/bin:\$PATH && mkdir -p ${BUILD_DIR}/$SUBDIR/build && cd $BUILD_DIR/$SUBDIR/build && cmake .. && make ${CLEAN} $TEGRA_CMD" || exit $?
 
 echo
 echo "### Compiling on PC ###"
 echo
-ssh -t $PC "mkdir -p ${BUILD_DIR}/${SUBDIR}/build && cd $BUILD_DIR/$SUBDIR/build && cmake .. && make ${CLEAN} $PC_CMD" || exit $?
+ssh -t $PC "export PATH=/usr/local/cuda/bin:\$PATH && mkdir -p ${BUILD_DIR}/${SUBDIR}/build && cd $BUILD_DIR/$SUBDIR/build && cmake .. && make ${CLEAN} $PC_CMD" || exit $?
 
 #Launch on both nodes
 echo "Running:"
