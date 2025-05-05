@@ -28,7 +28,7 @@ to set your group number in `common.h`.
 ### Things you need to change
 
 - Set cuda or c in `run.sh`
-- Set your group number in `common.h`
+- Set your group number in `c63.h`
 
 
 ## Usage
