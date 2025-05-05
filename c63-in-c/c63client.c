@@ -11,22 +11,6 @@
 #include <sisci_error.h>
 #include <sisci_api.h>
 
-static uint32_t remote_node = 0;
-
-/* getopt */
-extern int optind;
-extern char *optarg;
-
-#include <assert.h>
-#include <errno.h>
-#include <getopt.h>
-#include <limits.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "c63.h"
 #include "c63_write.h"
 #include "common.h"
@@ -37,6 +21,7 @@ static char *output_file, *input_file;
 FILE *outfile;
 
 static int limit_numframes = 0;
+static uint32_t remote_node = 0;
 
 static uint32_t width;
 static uint32_t height;
@@ -249,6 +234,7 @@ int main(int argc, char **argv)
     fprintf(stderr, "Error getting program options, try --help.\n");
     exit(EXIT_FAILURE);
   }
+
   /* Initialize the SISCI library */
   SCIInitialize(0, &error);
   if (error != SCI_ERR_OK) {

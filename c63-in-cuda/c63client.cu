@@ -8,6 +8,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <sisci_error.h>
+#include <sisci_api.h>
+
 #include "c63.h"
 #include "c63_write.h"
 #include "quantdct.h"
@@ -207,7 +210,7 @@ free_c63_enc( struct c63_common *cm )
 static void
 print_help(  )
 {
-    printf( "Usage: ./c63enc -r nodeid [options] input_file\n" );
+    printf( "Usage: ./c63client -r nodeid [options] input_file\n" );
     printf( "Commandline options:\n" );
   printf("  -r                             Node id of client\n");
     printf
@@ -227,6 +230,7 @@ main( int argc, char **argv )
 {
     int c;
     yuv_t *image;
+    sci_error_t error;
 
     if ( argc == 1 )
     {
@@ -262,6 +266,13 @@ main( int argc, char **argv )
     {
         fprintf( stderr, "Error getting program options, try --help.\n" );
         exit( EXIT_FAILURE );
+    }
+
+    /* Initialize the SISCI library */
+    SCIInitialize(0, &error);
+    if (error != SCI_ERR_OK) {
+        fprintf(stderr,"SCIInitialize failed: %s\n", SCIGetErrorString(error));
+        exit(EXIT_FAILURE);
     }
 
     outfile = fopen( output_file, "wb" );
@@ -323,6 +334,8 @@ main( int argc, char **argv )
     free_c63_enc( cm );
     fclose( outfile );
     fclose( infile );
+  
+    SCITerminate();
 
     return EXIT_SUCCESS;
 }
