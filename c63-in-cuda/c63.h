@@ -5,6 +5,13 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#ifndef GROUP
+#error Fill in group number
+#endif
+
+/* GET_SEGMENTID(2) gives you segmentid 2 at your groups offset */
+#define GET_SEGMENTID(id) ( GROUP << 16 | id )
+
 #define MAX_FILELENGTH 200
 #define DEFAULT_OUTPUT_FILE "a.mjpg"
 

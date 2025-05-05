@@ -7,19 +7,41 @@ c63-in-c for the first and c63-in-cuda for the second.
 The code is actually the same at this point (C++ is pretty much a superset of C,
 and CUDA a superset of C++), only the filenames are different for convenience.
 
-After changing either to c63-in-c or to c63-in-cuda, you do the following:
+## Dolphin SISCI
 
-To build:
-```
-mkdir build
-cd build
-cmake ..
-make
-```
+This branch contains a few changes compared to master to facilitate using SISCI
+in a Dolphin NTB cluster. First of all, two new executables are build:
+c63server and c63client. The client is a copy of c63enc with takes an
+additional `-r` parameter for remote node and call `SCIInitialize`. The
+c63server is a very bare bones executable that just calls `SCIInitialize`. The
+intention is that c63client runs on the x86 node and the c63server on the
+Xavier. Additionally there is a `run.sh` script that compiles and runs the code
+on the target nodes. This script should be run on the login node, it
+automatically copies over the source to both nodes, compiles and runs, passing
+the correct remote node id with `-r` to the program. You may change the
+`run.sh` script, but the delivery should contain a run.sh with the same usage.
 
-To encode a video:
+Same as with the previous exam, select either c63-in-c or c63-in-cuda, but this
+time, set it in `run.sh` so that it compiles the correct variant. You also need
+to set your group number in `common.h`.
+
+### Things you need to change
+
+- Set cuda or c in `run.sh`
+- Set your group number in `common.h`
+
+
+## Usage
+
+The `run.sh` script will compile and launch the encoder on both nodes. `c63client`
+will be run on the PC and `c63server` will be launched
+on the tegra. To specify the cluster to run on, specify the `--tegra` parameter.
+The x86 node is automatically selected from the given tegra node. To pass arguments
+to `c63client`, use `--args "arg1 arg2"`.
+
+Example usage:
 ```
-./c63enc -w 352 -h 288 -f 10 -o foremanout.c63 foreman.yuv
+./run.sh --tegra tegra-1 --args "/mnt/sdcard/foreman.yuv -o output -w 352 -h 288"
 ```
 
 We strongly recommend that clone the github repository in5050-codec63 twice.
