@@ -86,11 +86,13 @@ target_compile_options(c63pred PUBLIC -DC63_PRED)
 
 add_executable(c63server
                c63server.cu c63.h)
+target_compile_options(c63server PUBLIC -D_REENTRANT)
 target_link_libraries(c63server c63 m)
 target_link_libraries(c63server SISCI)
 
 add_executable(c63client
                c63client.cu c63.h
                c63_write.cu c63_write.h)
+target_compile_options(c63client PUBLIC -D_REENTRANT)
 target_link_libraries(c63client c63 m)
 target_link_libraries(c63client SISCI)
