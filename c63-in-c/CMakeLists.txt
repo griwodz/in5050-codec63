@@ -9,6 +9,10 @@ project(Codec63
 	DESCRIPTION "CMake configuration file for Codec63 in C"
         LANGUAGES C)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
+find_package(SISCI REQUIRED)
+
 # Use the C standard from 2011. No effect on Windows (Visual Studio ignores
 # the standards anyway).
 set(CMAKE_C_STANDARD 11)
@@ -56,4 +60,17 @@ add_executable(c63pred
                c63dec.c c63.h)
 target_link_libraries(c63pred c63 m)
 target_compile_options(c63pred PUBLIC -DC63_PRED)
+
+add_executable(c63server
+               c63server.c c63.h)
+target_compile_options(c63server PUBLIC -D_REENTRANT)
+target_link_libraries(c63server c63 m)
+target_link_libraries(c63server SISCI)
+
+add_executable(c63client
+               c63client.c c63.h
+               c63_write.c c63_write.h)
+target_compile_options(c63client PUBLIC -D_REENTRANT)
+target_link_libraries(c63client c63 m)
+target_link_libraries(c63client SISCI)
 

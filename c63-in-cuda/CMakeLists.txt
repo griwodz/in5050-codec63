@@ -9,6 +9,10 @@ project(Codec63
 	DESCRIPTION "CMake configuration file for Codec63 in C"
 	LANGUAGES CUDA)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake")
+
+find_package(SISCI REQUIRED)
+
 # Use the C standard from 2011. No effect on Windows (Visual Studio ignores
 # the standards anyway).
 set(CMAKE_CUDA_STANDARD 11)
@@ -70,6 +74,7 @@ add_executable(c63enc
                c63enc.cu c63.h
 	       c63_write.cu c63_write.h)
 target_link_libraries(c63enc c63 m)
+target_link_libraries(c63enc SISCI)
 
 add_executable(c63dec
                c63dec.cu c63.h)
